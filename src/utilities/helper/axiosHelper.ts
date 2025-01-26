@@ -5,7 +5,7 @@ import { BASE_URL } from "../constant/apiEndpoints";
 import { RoutePaths } from "../constant/appRoutes";
 import { LOCAL_STORAGE_KEYS } from "../constant/localStorageKeys";
 import { ApiErrorResponse } from "../interface/apiResponse.interface";
-import { getFromLocal } from "./localStorageHelper";
+import { getFromLocal, removeFromLocal, saveToLocal } from "./localStorageHelper";
 
 
 const headers = {
@@ -62,14 +62,13 @@ httpService.interceptors.response.use(undefined, async (error: AxiosError<ApiErr
                 accessToken: data?.data?.accessToken,
                 refreshToken: data?.data?.refreshToken,
             };
-            console.log(authToken);
-
-            localStorage.setItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN, JSON.stringify(authToken));
-
+            saveToLocal(LOCAL_STORAGE_KEYS.AUTH_TOKEN, authToken, { isJson: true, isEncrypted: true });
             window.location.reload();
         } else {
-            localStorage.removeItem(LOCAL_STORAGE_KEYS.AUTH_USER);
-            localStorage.removeItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN);
+
+            removeFromLocal(LOCAL_STORAGE_KEYS.AUTH_USER);
+            removeFromLocal(LOCAL_STORAGE_KEYS.AUTH_TOKEN);
+
             message.error("401 Unauthorized. Please log in again.");
             setTimeout(() => {
                 window.location.href = RoutePaths.Auth.LOGIN;

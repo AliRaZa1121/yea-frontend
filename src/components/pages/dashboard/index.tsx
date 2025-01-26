@@ -5,6 +5,7 @@ import { DashboardService } from "../../../services/dashboard.service";
 import { RoutePaths } from "../../../utilities/constant/appRoutes";
 import { LOCAL_STORAGE_KEYS } from "../../../utilities/constant/localStorageKeys";
 import "./dashboard.scss";
+import { removeFromLocal } from "../../../utilities/helper/localStorageHelper";
 
 const { confirm } = Modal;
 
@@ -17,7 +18,9 @@ const Dashboard = () => {
       icon: <LogoutOutlined />,
       content: "",
       async onOk() {
-        localStorage.removeItem(LOCAL_STORAGE_KEYS.AUTH_USER);
+        removeFromLocal(LOCAL_STORAGE_KEYS.AUTH_USER);
+        removeFromLocal(LOCAL_STORAGE_KEYS.AUTH_TOKEN);
+
         window.location.href = RoutePaths.Auth.LOGIN;
       },
     });

@@ -13,50 +13,90 @@ type GetFromLocalOptions = {
 };
 
 const saveToLocal = (key: string, data: any, options: SaveToLocalOptions = { isJson: true, isEncrypted: false }): void => {
-    let saveData: string = data;
-    
-    if (options.isJson && data) {
-        saveData = JSON.stringify(data);
+    try {
+        let saveData: string = data;
+        
+        if (options.isJson && data) {
+            saveData = JSON.stringify(data);
+        }
+        
+        if (options.isEncrypted && saveData) {
+            saveData = CryptoES.AES.encrypt(saveData, ENCRYPTION_KEY).toString();
+        }
+        
+        // Ensure localStorage is available and handle errors if not
+        if (typeof global.localStorage !== 'undefined') {
+            global.localStorage.setItem(key, saveData);
+        } else {
+            console.error('localStorage is not available in this environment.');
+        }
+    } catch (error) {
+        console.error('Error saving to localStorage:', error);
     }
-    
-    if (options.isEncrypted && saveData) {
-        saveData = CryptoES.AES.encrypt(saveData, ENCRYPTION_KEY).toString();
-    }
-    
-    global.localStorage.setItem(key, saveData);
 };
 
 const getFromLocal = <T = any>(key: string, options: GetFromLocalOptions = { isJson: true, isEncrypted: false }): T | null => {
-    let data = global.localStorage.getItem(key);
-    
-    if (data && options.isEncrypted) {
-        const bytes = CryptoES.AES.decrypt(data, ENCRYPTION_KEY);
-        data = bytes.toString(CryptoES.enc.Utf8);
-    }
-    
-    if (data && options.isJson) {
-        try {
-            return JSON.parse(data) as T;
-        } catch (e) {
-            console.error('Error parsing JSON:', e);
+    try {
+        let data = global.localStorage.getItem(key);
+
+        if (!data) {
+            console.warn(`No data found for key: ${key}`);
             return null;
         }
+        
+        if (options.isEncrypted) {
+            try {
+                const bytes = CryptoES.AES.decrypt(data, ENCRYPTION_KEY);
+                data = bytes.toString(CryptoES.enc.Utf8);
+            } catch (decryptError) {
+                console.error('Error decrypting data:', decryptError);
+                return null;
+            }
+        }
+        
+        if (options.isJson) {
+            try {
+                return JSON.parse(data) as T;
+            } catch (jsonParseError) {
+                console.error('Error parsing JSON:', jsonParseError);
+                return null;
+            }
+        }
+        
+        return data as T;
+    } catch (error) {
+        console.error('Error retrieving from localStorage:', error);
+        return null;
     }
-    
-    return data as T;
 };
 
 const removeFromLocal = (key: string): void => {
-    global.localStorage.removeItem(key);
+    try {
+        if (typeof global.localStorage !== 'undefined') {
+            global.localStorage.removeItem(key);
+        } else {
+            console.error('localStorage is not available in this environment.');
+        }
+    } catch (error) {
+        console.error('Error removing from localStorage:', error);
+    }
 };
 
 const removeLocalStorageData = (): void => {
-    global.localStorage.clear();
+    try {
+        if (typeof global.localStorage !== 'undefined') {
+            global.localStorage.clear();
+        } else {
+            console.error('localStorage is not available in this environment.');
+        }
+    } catch (error) {
+        console.error('Error clearing localStorage:', error);
+    }
 };
 
 export {
     getFromLocal,
     removeFromLocal,
-    removeLocalStorageData, saveToLocal
+    removeLocalStorageData,
+    saveToLocal
 };
-
