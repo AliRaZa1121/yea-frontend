@@ -17,11 +17,7 @@ $ npm install
 
 ```bash
 
-# For development
-$ cp .env.example development.env
-
- # For production
-$ cp .env.example production.env
+$ cp .env.example .env
 
 ```
 
